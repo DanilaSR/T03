@@ -74,6 +74,6 @@ Thumbs.db
 
 # Matlab
 *.asv
-*.mexw32
-*.mexw64
+*.mex*32
+*.mex*64
 
