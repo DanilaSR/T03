@@ -1,6 +1,6 @@
 function H = Get_H_8176_7156()
 
-ones = load('Specification of Circulants LDPC (8176, 7156) Parity Check Matrix.txt');
+ones = load("H.txt");
 A = cell(2,16);
 
 for j = 1:2

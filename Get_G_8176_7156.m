@@ -1,6 +1,6 @@
 function G = Get_G_8176_7156()
 
-filename = "Specification of Circulants LDPC (8176, 7156) Generator Matrix.txt";
+filename = "G.txt";
 
 fid = fopen(filename);
 data = fscanf(fid, '%1X');
