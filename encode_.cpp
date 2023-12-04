@@ -8,71 +8,74 @@
 
 using namespace std;
 
-vector <uint16_t> encode_(vector <uint16_t> code, vector <uint16_t> G, uint16_t rows, uint16_t cols);
+vector <bool> encode_(vector <bool> message, vector <bool> G, uint16_t rows, uint16_t cols);
 
 
 void mexFunction(int nlhs, mxArray *plhs[],
 				 int nrhs, const mxArray *prhs[])
 {
-	/* DECLARATIONS*/
-	vector <uint16_t> code, seq, G;
+	// DECLARATIONS
+	vector <bool> message;
+	vector <bool> codeword;
+	vector <bool> G;
     mwSize const* dims;
-    mwSize rows, cols;
-    double *a;
+    uint16_t rows;
+	uint16_t cols;
+	double *arg0;
+    double *arg1;
 
+	// INPUTS
+	arg0 = mxGetPr(prhs[0]);
+	arg1 = mxGetPr(prhs[1]);
     dims = mxGetDimensions(prhs[1]);
-    rows = dims[0];
-    cols = dims[1];
+    rows = static_cast<uint16_t>(dims[0]);
+    cols = static_cast<uint16_t>(dims[1]);
 	
-	/* INPUTS */
-	double *arg1 = mxGetPr(prhs[0]);
-
     // Output array:
     //plhs[1] = mxCreateDoubleMatrix(rows, rows*cols, mxREAL);
 
     // Access the contents of the input and output arrays:
-    a = mxGetPr(prhs[1]);
-
-	
 	for (uint16_t i = 0; i < mxGetNumberOfElements(prhs[0]); i++)
 	{
-		code.push_back(static_cast<uint16_t>(arg1[i]));
+		message.push_back(static_cast<bool>(arg0[i]));
 	}
 
 	for (uint16_t i = 0; i < rows; i++)
 	{
         for (uint16_t j = 0; j < cols; j++)
         {
-		    G.push_back(static_cast<uint16_t>(a[i + rows * j]));
-            //mexPrintf("%f\n", a[i + rows * j]);
+		    G.push_back(static_cast<bool>(arg1[i + rows * j]));
+            //mexPrintf("%f\n", arg1[i + rows * j]);
         } 
 	}	
 	
-	seq = encode_(code, G, static_cast<uint16_t>(rows), static_cast<uint16_t>(cols));
+	// Execute main code
+	codeword = encode_(message, G, rows, cols);
 	
 	
 	// OUTPUTS
-	plhs[0] = mxCreateDoubleMatrix(1, seq.size(), mxREAL);
+	plhs[0] = mxCreateDoubleMatrix(1, codeword.size(), mxREAL);
+	
 	double *ret = mxGetPr(plhs[0]);
 
-	for (uint16_t i = 0; i < seq.size(); i++)
+	for (uint16_t i = 0; i < codeword.size(); i++)
 	{
-		ret[i] = static_cast<double>(seq[i]);
+		ret[i] = static_cast<double>(codeword[i]);
 	}
 }
 
 
 
 
-vector <uint16_t> encode_(vector <uint16_t> code, vector <uint16_t> G, uint16_t rows, uint16_t cols)
+vector <bool> encode_(vector <bool> message, vector <bool> G, uint16_t rows, uint16_t cols)
 {
 
-    vector <uint16_t> res;
+    vector <bool> res;
 
     for (int i = 0; i < cols; i++) {
         int sum = 0;
         for (int j = 0; j < rows; j++) {
-            sum += code[j] * G[i + cols * j];
+            sum += message[j] * G[i + cols * j];
         }
         res.push_back(sum);
     }
