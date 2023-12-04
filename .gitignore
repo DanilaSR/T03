@@ -72,7 +72,8 @@ Thumbs.db
 *.dll
 *.exe
 
-# Matlab mex
+# Matlab
+*.asv
 *.mexw32
 *.mexw64
 
