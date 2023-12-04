@@ -26,24 +26,17 @@ I = eye(7154, 7154);
 Z = zeros(7154, 1022);
 G = [I, Z];
 
-B1 = '55BF56CC55283DFEEFEA8C8CFF04E1EBD9067710988E25048D67525426939E2068D2DC6FCD2F822BEB6BD96C8A76F4932AAE9BC53AD20A2A9C86BB461E43759C';
-
-N = [];
-for i=1:64
-    S = sprintf('%d*', hex2dec(B1(2*i-1:2*i)));
-    N = [N, S];
-end
-
-B = split(N, '*');
-b = cellfun(@(x)str2double(x), B);
-
-res = [];
-for i=1:64
-    res = [res, dec2bin(b(i), 8)];
-end
+b1 = '55BF56CC55283DFEEFEA8C8CFF04E1EBD9067710988E25048D67525426939E2068D2DC6FCD2F822BEB6BD96C8A76F4932AAE9BC53AD20A2A9C86BB461E43759C';
+% b12 =
+% b21 =
+% b22 = 
+    
+%H = Get_H_8176_7156;
+%G = Get_G_8176_7156;
+ 
 
 
+B1 = circulant(b1);
 
-shift = shift(res);
 
 

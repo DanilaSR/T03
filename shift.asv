@@ -1,12 +1,12 @@
-function [output] = shift(input, t)
+function [outputArg1] = shift(inputArg1, t)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-output = input;
+outputArg1 = inputArg1;
 
 %outputArg1(1) = inputArg1(512);
 for i=1:512
-    output(i) = input(mod(i - t + 511, 512) + 1);
+    outputArg1(i) = inputArg1(mod(i - t + 512, 512));
 end
 
 end
