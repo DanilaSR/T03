@@ -19,6 +19,8 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
 void mexFunction(int nlhs, mxArray *plhs[], 
                  int nrhs, const mxArray *prhs[])
 {
+	mexPrintf("Start decoder\n");
+	
 	// DECLARATIONS
 	vector <bool> codeword;
 	vector <bool> decodedword;
@@ -37,27 +39,31 @@ void mexFunction(int nlhs, mxArray *plhs[],
     rows = static_cast<uint16_t>(dims[0]);
     cols = static_cast<uint16_t>(dims[1]);
 
-
+	mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
+	mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
+	mexPrintf("Matrix H: rows = %u, cols = %u\n", rows, cols);
+	
+	
 	// Access the contents of the input and output arrays:
 	for (uint16_t i = 0; i < mxGetNumberOfElements(prhs[0]); i++)
 	{
 		codeword.push_back(static_cast<bool>(arg0[i]));
-		//mexPrintf("%u ", codeword[i]);
 	}
+	mexPrintf("codeword.size() = %u\n", codeword.size());
+	
 	
 	for (uint16_t i = 0; i < rows; i++)
 	{
         for (uint16_t j = 0; j < cols; j++)
         {
 		    H.push_back(static_cast<bool>(arg1[i + rows * j]));
-            //mexPrintf("%f\n", arg1[i + rows * j]);
         } 
-	}	
+	}
+	mexPrintf("H.size() = %u\n", H.size());
 	
 	// Execute main code
 	decodedword = decode_(codeword, H, rows, cols, iter);
-	//mexPrintf("codeword.size %u\n", codeword.size());
-	  
+ 
 	
 	// OUTPUTS
 	plhs[0] = mxCreateDoubleMatrix(1, decodedword.size(), mxREAL);
