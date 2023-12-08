@@ -6,6 +6,7 @@
 #include "iostream"
 #include "vector"
 #include "numeric"
+#include <stdlib.h>
 
 #define I_MAX 100 //максимальное число итераций
 #define p 0.3    //вероятность
@@ -83,10 +84,25 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uint16_t &iter) {
 
-  double R[k][n];
-  double E[k][n];
-  double r[n];
-  double L[n];
+  // double R[k][n];
+  // double E[k][n];
+  // double r[n];
+  // double L[n];
+
+
+  double **R = (double**) malloc(k*sizeof(double*));
+  for (int i = 0; i < k; i++){
+      R[i] = (double*) malloc(n*sizeof(double));
+  }  
+
+  double **E = (double**) malloc(k*sizeof(double*));
+  for (int i = 0; i < k; i++){
+      E[i] = (double*) malloc(n*sizeof(double));
+  }
+
+  double *r = (double*) malloc(n*sizeof(double));
+  double *L = (double*) malloc(n*sizeof(double));
+
 
   for (int i = 0; i < n; i++) {
     if (codeword[i] == 1) {
@@ -106,7 +122,7 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
   while (iter < I_MAX) {
     for (int i = 0; i < k; i++) {
       for (int j = 0; j < n; j++) {
-        double p1 = 1;
+        long double p1 = 1;
         if (H[i*n + j] == 1) {
           for (int q = 1; q < n; q++) {
             if (H[i*n + (j + q) % n] == 1) {
@@ -154,6 +170,20 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
 	}
     iter += 1;
   }
+
+
+  for (int i = 0; i < k; i++){
+      free(R[i]);
+  }
+
+  for (int i = 0; i < k; i++){
+      free(E[i]);
+  }
+
+  free(R);
+  free(E);
+  free(r);
+  free(L);
 
   return codeword;
 }
