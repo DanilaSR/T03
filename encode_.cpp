@@ -8,7 +8,7 @@
 
 using namespace std;
 
-vector <bool> encode_(vector <bool> message, vector <bool> G, uint16_t rows, uint16_t cols);
+vector <bool> encode_(const vector <bool> &message, vector <bool> &G, uint16_t rows, uint16_t cols);
 
 
 void mexFunction(int nlhs, mxArray *plhs[],
@@ -67,9 +67,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 
-vector <bool> encode_(vector <bool> message, vector <bool> G, uint16_t rows, uint16_t cols)
+vector <bool> encode_(const vector <bool> &message, vector <bool> &G, uint16_t rows, uint16_t cols)
 {
-
     vector <bool> res;
 
     for (int i = 0; i < cols; i++) {

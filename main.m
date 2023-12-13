@@ -10,6 +10,9 @@ tic
 G = Get_G_8176_7156();
 H = Get_H_8176_7156();
 
+% Проверка ошибок
+% is_matrix_error = any(any(G*H'))
+
 % k - message bit
 % n - codeword bit
 % m - parity-check bit
@@ -29,7 +32,17 @@ c = encode_(u, G);
 [y, iter] = decode_(c, H);
 
 % Проверка ошибок
-any(mod(H * c', 2))
+% is_coder_error = any(mod(H * c', 2))
+
+% Результаты
+s = (u == y(1:k));
+similarity = sum(s)/numel(s);
+
+
+disp(['Iteration number to decode: ', num2str(iter)]);
+disp(['Similarity decode: ', num2str(sum(s)), '/', num2str(numel(s)), ...
+    ' (', num2str(similarity),')']);
+
 
 toc
 

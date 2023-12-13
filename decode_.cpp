@@ -13,8 +13,8 @@
 
 using namespace std;
 
-bool check(vector <bool> codeword, vector <bool> H, int k, int n);
-vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uint16_t &iter);
+bool check(const vector <bool> &codeword, const vector <bool> &H, int k, int n);
+vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter);
 
 
 void mexFunction(int nlhs, mxArray *plhs[], 
@@ -40,9 +40,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
     rows = static_cast<uint16_t>(dims[0]);
     cols = static_cast<uint16_t>(dims[1]);
 
-	mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
-	mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
-	mexPrintf("Matrix H: rows = %u, cols = %u\n", rows, cols);
+	//mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
+	//mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
+	//mexPrintf("Matrix H: rows = %u, cols = %u\n", rows, cols);
 	
 	
 	// Access the contents of the input and output arrays:
@@ -50,7 +50,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	{
 		codeword.push_back(static_cast<bool>(arg0[i]));
 	}
-	mexPrintf("codeword.size() = %u\n", codeword.size());
+	//mexPrintf("codeword.size() = %u\n", codeword.size());
 	
 	
 	for (uint16_t i = 0; i < rows; i++)
@@ -60,7 +60,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 		    H.push_back(static_cast<bool>(arg1[i + rows * j]));
         } 
 	}
-	mexPrintf("H.size() = %u\n", H.size());
+	//mexPrintf("H.size() = %u\n", H.size());
 	
 	// Execute main code
 	decodedword = decode_(codeword, H, rows, cols, iter);
@@ -82,12 +82,14 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 
-vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uint16_t &iter) {
+vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter) {
 
   // double R[k][n];
   // double E[k][n];
   // double r[n];
   // double L[n];
+  
+  vector <bool> decodedword = codeword;
 
 
   double **R = (double**) malloc(k*sizeof(double*));
@@ -105,7 +107,7 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
 
 
   for (int i = 0; i < n; i++) {
-    if (codeword[i] == 1) {
+    if (decodedword[i] == 1) {
       r[i] = log(p / (1 - p));
     } else {
       r[i] = log((1 - p) / p);
@@ -119,7 +121,7 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
   }
 
   iter = 1;
-  while (iter < I_MAX) {
+  while (iter <= I_MAX) {
     for (int i = 0; i < k; i++) {
       for (int j = 0; j < n; j++) {
         long double p1 = 1;
@@ -145,13 +147,15 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
 
     for (int i = 0; i < n; i++) {
       if (L[i] > 0) {
-        codeword[i] = 0;
+        decodedword[i] = 0;
       } else if (L[i] <= 0) {
-        codeword[i] = 1;
+        decodedword[i] = 1;
       }
     }
-
-    if (check(codeword, H, k, n) == 1) {
+	
+	if (check(decodedword, H, k, n) == 0 || iter == I_MAX) {
+      break;
+    } else {
       for (int i = 0; i < n; i++) {
         for (int j = 0; j < k; j++) {
           double sum = 0;
@@ -165,10 +169,8 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
           }
         }
       }
-    } else {
-		break;
-	}
-    iter += 1;
+	  iter += 1;
+    }
   }
 
 
@@ -188,7 +190,7 @@ vector <bool> decode_(vector <bool> codeword, vector <bool> H, int k, int n, uin
   return codeword;
 }
 
-bool check(vector <bool> codeword, vector <bool> H, int k, int n) {
+bool check(const vector <bool> &codeword, const vector <bool> &H, int k, int n) {
 
   bool flag = true;
   int sum = 0;
@@ -196,9 +198,9 @@ bool check(vector <bool> codeword, vector <bool> H, int k, int n) {
     for (int i = 0; i < n; i++) {
       sum += codeword[i] * H[j*n + i];
     }
-    if (sum % 2 != 0) {
-      flag = false;
-    }
+  }
+  if (sum % 2 != 0) {
+    flag = false;
   }
 
   return !flag;
