@@ -1,86 +1,54 @@
-#include "mex.h"
+#include <iostream>
+#include <vector>
+#include <numeric>
 
-#include "stdint.h"
-#include "math.h"
+#include <stdint.h>
+#include <math.h>
 
-#include "iostream"
-#include "vector"
-#include "numeric"
-#include <stdlib.h>
-
-#define p 0.3    //вероятность
+#define p 0.3
 
 using namespace std;
 
-bool check(const vector <char> &codeword, const vector <char> &H, int k, int n);
+vector <char> encode_(const vector <char> &message, vector <char> &G, uint16_t rows, uint16_t cols);
 vector <char> decode_(const vector <double> &codeword, const vector <char> &H, int k, int n, uint16_t &iter, const uint16_t iterMax, const double EsN0);
 
+bool check(const vector <char> &codeword, const vector <char> &H, int k, int n);
 
-void mexFunction(int nlhs, mxArray *plhs[], 
-                 int nrhs, const mxArray *prhs[])
-{
-	//mexPrintf("Start decoder\n");
-	
-	// DECLARATIONS
-	vector <double> codeword;
-	vector <char> decodedword;
-	vector <char> H;
-	uint16_t iter;
-	uint16_t iter_max;
-	double EsN0;
-	
-	// INPUTS
-	double *arg0 = mxGetPr(prhs[0]);
-	double *arg1 = mxGetPr(prhs[1]);
-	double *arg2 = mxGetPr(prhs[2]);
-	double *arg3 = mxGetPr(prhs[3]);
-    mwSize const* dims = mxGetDimensions(prhs[1]);
-    uint16_t rows = static_cast<uint16_t>(dims[0]);
-    uint16_t cols = static_cast<uint16_t>(dims[1]);
 
-	//mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
-	//mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
-	//mexPrintf("Matrix H: rows = %u, cols = %u\n", rows, cols);
-	
-	
-	// Access the contents of the input and output arrays:
-	for (uint16_t i = 0; i < mxGetNumberOfElements(prhs[0]); i++)
-	{
-		codeword.push_back(static_cast<double>(arg0[i]));
-	}
-	//mexPrintf("codeword.size() = %u\n", codeword.size());
-	
-	
-	for (uint16_t i = 0; i < rows; i++)
-	{
-        for (uint16_t j = 0; j < cols; j++)
-        {
-		    H.push_back(static_cast<char>(arg1[i + rows * j]));
-        } 
-	}
-	//mexPrintf("H.size() = %u\n", H.size());
-	
-	iter_max = static_cast<uint16_t>(*arg2);
-	EsN0 = static_cast<double>(*arg3);
-	
-	// Execute main code
-	decodedword = decode_(codeword, H, rows, cols, iter, iter_max, EsN0);
- 
-	
-	// OUTPUTS
-	plhs[0] = mxCreateDoubleMatrix(1, decodedword.size(), mxREAL);
-	plhs[1] = mxCreateNumericMatrix(1, 1, mxUINT16_CLASS, mxREAL);
-	
-	double *ret = mxGetPr(plhs[0]);
-	for (uint16_t i = 0; i < decodedword.size(); i++)
-	{
-		ret[i] = static_cast<char>(decodedword[i]);
-	}
-	
-	uint16_t *i = static_cast<uint16_t *>(mxGetData(plhs[1]));
-	*i = iter;
+int main() {
+
+    vector <char> H = {1, 1, 0, 1, 0, 0,
+                       0, 1, 1, 0, 1, 0,
+                       1, 0, 0, 0, 1, 1,
+                       0, 0, 1, 1, 0, 1};
+    int m = 4;
+    int n = 6;
+    int k = 2;
+
+    vector <char> c = {0, 0, 1, 0, 1, 1};
+    vector <double> y = {-0.1, 0.5, -0.8, 1.0, -0.7, 0.5};
+
+    uint16_t iter;
+
+    vector <char> decodedword = decode_(y, H, m, n, iter, 10, 1.25);
+
+    return 0;
 }
 
+
+vector <char> encode_(const vector <char> &message, vector <char> &G, uint16_t rows, uint16_t cols)
+{
+    vector <char> res(cols);
+
+    for (int i = 0; i < cols; i++) {
+        int sum = 0;
+        for (int j = 0; j < rows; j++) {
+            sum += message[j] * G[i + cols * j];
+        }
+        res.push_back(sum);
+    }
+    return res;
+}
 
 
 vector <char> decode_(const vector <double> &codeword, const vector <char> &H, int m, int n, uint16_t &iter, const uint16_t iterMax, const double EsN0) {
@@ -209,3 +177,4 @@ bool check(const vector <char> &codeword, const vector <char> &H, int k, int n) 
 
     return true;
 }
+

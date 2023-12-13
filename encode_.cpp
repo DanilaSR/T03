@@ -8,16 +8,16 @@
 
 using namespace std;
 
-vector <bool> encode_(const vector <bool> &message, vector <bool> &G, uint16_t rows, uint16_t cols);
+vector <char> encode_(const vector <char> &message, vector <char> &G, uint16_t rows, uint16_t cols);
 
 
 void mexFunction(int nlhs, mxArray *plhs[],
 				 int nrhs, const mxArray *prhs[])
 {
 	// DECLARATIONS
-	vector <bool> message;
-	vector <bool> codeword;
-	vector <bool> G;
+	vector <char> message;
+	vector <char> codeword;
+	vector <char> G;
     mwSize const* dims;
     uint16_t rows;
 	uint16_t cols;
@@ -31,27 +31,28 @@ void mexFunction(int nlhs, mxArray *plhs[],
     rows = static_cast<uint16_t>(dims[0]);
     cols = static_cast<uint16_t>(dims[1]);
 	
-    // Output array:
-    //plhs[1] = mxCreateDoubleMatrix(rows, rows*cols, mxREAL);
+	//mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
+	//mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
+	//mexPrintf("Matrix G: rows = %u, cols = %u\n", rows, cols);
+	
 
     // Access the contents of the input and output arrays:
 	for (uint16_t i = 0; i < mxGetNumberOfElements(prhs[0]); i++)
 	{
-		message.push_back(static_cast<bool>(arg0[i]));
+		message.push_back(static_cast<char>(arg0[i]));
 	}
 
 	for (uint16_t i = 0; i < rows; i++)
 	{
         for (uint16_t j = 0; j < cols; j++)
         {
-		    G.push_back(static_cast<bool>(arg1[i + rows * j]));
-            //mexPrintf("%f\n", arg1[i + rows * j]);
+		    G.push_back(static_cast<char>(arg1[i + rows * j]));
         } 
 	}	
 	
 	// Execute main code
 	codeword = encode_(message, G, rows, cols);
-	
+	//mexPrintf("codeword.size() = %u\n", mxGetNumberOfElements(prhs[1]));
 	
 	// OUTPUTS
 	plhs[0] = mxCreateDoubleMatrix(1, codeword.size(), mxREAL);
@@ -67,16 +68,16 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 
-vector <bool> encode_(const vector <bool> &message, vector <bool> &G, uint16_t rows, uint16_t cols)
+vector <char> encode_(const vector <char> &message, vector <char> &G, uint16_t rows, uint16_t cols)
 {
-    vector <bool> res;
+    vector <char> codeword(cols);
 
     for (int i = 0; i < cols; i++) {
         int sum = 0;
         for (int j = 0; j < rows; j++) {
             sum += message[j] * G[i + cols * j];
         }
-        res.push_back(sum);
+        codeword[i] = sum % 2;
     }
-    return res;
+    return codeword;
 }
