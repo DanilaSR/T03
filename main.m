@@ -5,6 +5,13 @@ mex decode_.cpp
 
 tic
 
+iter_max = 5;
+bps = 1;
+EbN0_dB = 1;
+EsN0_dB = EbN0_dB + 10*log10(bps);
+EbN0 = 10.^(EbN0_dB/20);
+EsN0 = 10.^(EsN0_dB/20);
+
 % Формирование кода 
 %Code(k,n)
 G = Get_G_8176_7156();
@@ -25,17 +32,20 @@ u = randi([0 1], 1, k);
 % Кодирование
 c = encode_(u, G);
 
-% Добавляем искажения
-% c(1) = 1;
-
-% Декодирование
-[y, iter] = decode_(c, H);
-
 % Проверка ошибок
 % is_coder_error = any(mod(H * c', 2))
 
+% Добавляем искажения
+sigma = 1/EbN0;
+n = normrnd(0, sigma, 1, length(c)); 
+y = c + n;
+
+% Декодирование
+[d, iter] = decode_(y, H, iter_max, 1.25);
+
+
 % Результаты
-s = (u == y(1:k));
+s = (u == d(1:k));
 similarity = sum(s)/numel(s);
 
 

@@ -8,13 +8,12 @@
 #include "numeric"
 #include <stdlib.h>
 
-#define I_MAX 100 //максимальное число итераций
 #define p 0.3    //вероятность
 
 using namespace std;
 
 bool check(const vector <bool> &codeword, const vector <bool> &H, int k, int n);
-vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter);
+vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter, const uint16_t iterMax, const double EsN0);
 
 
 void mexFunction(int nlhs, mxArray *plhs[], 
@@ -26,19 +25,18 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	vector <bool> codeword;
 	vector <bool> decodedword;
 	vector <bool> H;
-    mwSize const* dims;
-    uint16_t rows;
-	uint16_t cols;
 	uint16_t iter;
-	double *arg0;
-	double *arg1;
+	uint16_t iter_max;
+	double EsN0;
 	
 	// INPUTS
-	arg0 = mxGetPr(prhs[0]);
-	arg1 = mxGetPr(prhs[1]);
-    dims = mxGetDimensions(prhs[1]);
-    rows = static_cast<uint16_t>(dims[0]);
-    cols = static_cast<uint16_t>(dims[1]);
+	double *arg0 = mxGetPr(prhs[0]);
+	double *arg1 = mxGetPr(prhs[1]);
+	double *arg2 = mxGetPr(prhs[2]);
+	double *arg3 = mxGetPr(prhs[3]);
+    mwSize const* dims = mxGetDimensions(prhs[1]);
+    uint16_t rows = static_cast<uint16_t>(dims[0]);
+    uint16_t cols = static_cast<uint16_t>(dims[1]);
 
 	//mexPrintf("mxGetNumberOfElements(prhs[0]) = %u\n", mxGetNumberOfElements(prhs[0]));
 	//mexPrintf("mxGetNumberOfElements(prhs[1]) = %u\n", mxGetNumberOfElements(prhs[1]));
@@ -62,8 +60,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	}
 	//mexPrintf("H.size() = %u\n", H.size());
 	
+	iter_max = static_cast<uint16_t>(*arg2);
+	EsN0 = static_cast<double>(*arg3);
+	
 	// Execute main code
-	decodedword = decode_(codeword, H, rows, cols, iter);
+	decodedword = decode_(codeword, H, rows, cols, iter, iter_max, EsN0);
  
 	
 	// OUTPUTS
@@ -82,7 +83,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
 
 
-vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter) {
+vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int k, int n, uint16_t &iter, const uint16_t iterMax, const double EsN0) {
 
   // double R[k][n];
   // double E[k][n];
@@ -107,11 +108,16 @@ vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int
 
 
   for (int i = 0; i < n; i++) {
+	/* for AWGN channel model */
+	r[i] = 4 * decodedword[i] * EsN0;
+	  
+	/* for BSC model
     if (decodedword[i] == 1) {
       r[i] = log(p / (1 - p));
     } else {
       r[i] = log((1 - p) / p);
     }
+	*/
   }
 
   for (int i = 0; i < k; i++) {
@@ -121,7 +127,7 @@ vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int
   }
 
   iter = 1;
-  while (iter <= I_MAX) {
+  while (iter <= iterMax) {
     for (int i = 0; i < k; i++) {
       for (int j = 0; j < n; j++) {
         long double p1 = 1;
@@ -153,7 +159,7 @@ vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int
       }
     }
 	
-	if (check(decodedword, H, k, n) == 0 || iter == I_MAX) {
+	if (check(decodedword, H, k, n) == false || iter == iterMax) {
       break;
     } else {
       for (int i = 0; i < n; i++) {
@@ -192,17 +198,16 @@ vector <bool> decode_(const vector <bool> &codeword, const vector <bool> &H, int
 
 bool check(const vector <bool> &codeword, const vector <bool> &H, int k, int n) {
 
-  bool flag = true;
-  int sum = 0;
+  uint32_t sum = 0;
   for (int j = 0; j < k; j++) {
     for (int i = 0; i < n; i++) {
       sum += codeword[i] * H[j*n + i];
     }
-  }
-  if (sum % 2 != 0) {
-    flag = false;
+    if (sum % 2 != 0) {
+      return false;
+    }
   }
 
-  return !flag;
+  return true;
 }
 
