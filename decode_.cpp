@@ -163,7 +163,7 @@ vector <char> decode_(const vector <double> &codeword, const vector <char> &H, i
         } else {
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < m; j++) {
-                    if (H[j*n + i] == 1) {
+                    if (H[j + i*m] == 1) {
                         double sum = 0;
                         for (int q = 0; q < m; q++) {
                             if(q != j) {
